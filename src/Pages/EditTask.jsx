@@ -1,73 +1,88 @@
-import React, {useEffect} from "react";
-import { Link } from "react-router-dom";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Form from "react-bootstrap/Form";
-import img from "../assets/eva_arrow-ios-back-fill.svg";
-
 
 const EditTask = () => {
+  const [data, setData] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [tags, setTags] = useState("");
+  const { userId } = useParams();
+  // console.log(userId);
+  const navigate = useNavigate();
+  
+  const fetchedData = async () => {
+    try {
+      let dataGotten = await axios.get(
+       ` http://localhost:6767/api/task/${userId}`
+        );
+        // console.log(dataGotten.data.task);
+        // setData(dataGotten.data.task)
+        setTitle(dataGotten.data.task.title);
+        setDescription(dataGotten.data.task.description);
+        setTags(dataGotten.data.task.tags)
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    
+    async function handleUpdate (userId){
+      try {
+       let data =  await axios.patch(`http://localhost:6767/api/task/${userId}`, {
+        title,
+        description,
+        tags
+      });
+      console.log(data);
+      navigate('/AllTask');
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+  // console.log(1234);
   useEffect(() => {
-    document.title = "Edit-Task || page";
-  });
-
-  const scrollToTop = () => {
-    window.scroll({ top: 0, behavior: "smooth" });
-  };
-
+    document.title = "Edit || Page";
+    fetchedData();
+  }, [userId]);
   return (
-    <main className="container">
-      <div className="mt-4">
-        <Link to="/" className="text-decoration-none text-dark fs-1 fw-bold">
-          <img src={img} alt="eva-arrow" />
-          Edit Task
-        </Link>
-      </div>
-      <div className="fieldset-container m-5 h-25">
-        <h5 className="fieldset-title fs-4">Task Title</h5>
+    <div className="container">
+      <h1>EditTask</h1>
+      <Form>
         <input
           type="text"
-          className="w-100"
-          placeholder="Project Completion"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />{" "}
+        <br />
+        <br />
+        <input
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
         />
-      </div>
-
-      <div className="fieldset-container m-5 h-25">
-        <h5 className="fieldset-title fs-4">Description</h5>
-        <p className="fs-3">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Non tellus,
-          sapien, morbi ante nunc euismod ac felis ac. Massa et, at platea
-          tempus duis non eget. Hendrerit tortor fermentum bibendum mi nisl
-          semper porttitor. Nec accumsan.
-        </p>
-        <input type="text" className="w-100" placeholder="" />
-      </div>
-      {/* options */}
-      <div className="fieldset-container m-5">
-        <h5 className="fieldset-title fs-4">Tags</h5>
-        <Form.Select
-          aria-label="Default select example"
-          className="form-select"
-        >
-          <option value="">
-           <span>URGENT</span> <span>IMPORTANT</span>
-          </option>
-          <option value="1">urgent</option>
-          <option value="2">important</option>
-        </Form.Select>
-      </div>
-      <div>
+        <br />
+        <br />
+        <Form.Group className="mb-3 fw-bold">
+          <Form.Label htmlFor="disabledSelect">Tags:</Form.Label>
+          <Form.Select
+            id="disabledSelect"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+          >
+            {/* <option>----</option> */}
+            <option value="urgent">urgent</option>
+            <option value="important"> important </option>
+          </Form.Select>
+        </Form.Group>
         <button
-          className="btn btn-lg text-light fs-4 w-100"
-          style={{ backgroundColor: "#974FD0" }}
+          className="btn btn-success"
+          onClick={() => handleUpdate(userId)}
         >
-          Done
+          update
         </button>
-      </div>
-      <Link onClick={scrollToTop}>
-        <p className="text-center fs-4 mt-5" style={{ color: "#974FD0" }}>
-          Back to Top
-        </p>
-      </Link>
-    </main>
+      </Form>
+    </div>
   );
 };
 
